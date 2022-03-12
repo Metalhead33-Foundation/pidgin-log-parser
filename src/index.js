@@ -47,18 +47,33 @@ async function fetchTopic(destination) {
         $(this).contents().each((idx,elem) => {
             if(elem.type === 'tag' && elem.name === 'post') {
 			result.push({
-				name: $(elem).find("charname").text(),
-				content: $(elem).find("postcontent").html().replace(/\n/g,"<br>"),
-				date: convoDate + " " + $(elem).find("time").text(),
+				name: $(elem).find("charname").text().trim(),
+				content: $(elem).find("postcontent").html().replace(/\n/g,"<br>").trim(),
+				date: convoDate + " " + $(elem).find("time").text().trim(),
 			})
             } 
         })
     });
+    
+    let processedResult = [];
+    
+    for (var i = 0; i < result.length; i++) {
+        const processedIndex = processedResult.length - 1;
+        if(i == 0) {
+            processedResult.push(result[i]);
+        } else if(processedResult[processedIndex].name === result[i].name) {
+            processedResult[processedIndex].content = processedResult[processedIndex].content + '<br>\n' + result[i].content;
+        } else {
+            processedResult.push(result[i]);
+        }
+    } 
+    
 	fs.writeFile("output/raw.xml",htmlFile, function (err) {
   if (err) return console.log(err);
   console.log('Hello World > helloworld.txt');
 });
-    fs.writeFile("output/"+destination.substring(1)+".txt", result.map(({name,content,date}) => {
+    fs.writeFile("output/"+destination.substring(1)+".txt", processedResult.map(({name,content,date}) => {
+    //console.log(processedResult.map(({name,content,date}) => {
             return (
                 `{{RPG Post/${name}
 |date=${date}
